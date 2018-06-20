@@ -14,6 +14,7 @@ import android.support.annotation.Nullable;
 import android.widget.Toast;
 
 public class ImageService extends Service {
+    private BroadcastReceiver receiver;
     public ImageService() {
     }
 
@@ -27,7 +28,8 @@ public class ImageService extends Service {
         //code of service
     }
 
-    public int OnStartCommand(Intent intent, int flags, int startId) {
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        startWifiBroadcaster();
         Toast.makeText(this, "The service is starting...", Toast.LENGTH_SHORT).show();
         return START_STICKY;
     }
@@ -47,7 +49,7 @@ public class ImageService extends Service {
             @Override
             public void onReceive(Context context, Intent intent) {
                 WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-                NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+                NetworkInfo networkInfo = intent.getParcelableExtra(wifiManager.EXTRA_NETWORK_INFO);
                 if (networkInfo != null) {
                     if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
                         // get the different network states
@@ -62,6 +64,7 @@ public class ImageService extends Service {
     }
 
     public void startTransfer() {
-
+        ConnectionChannel connection = new ConnectionChannel();
+        connection.connect();
     }
 }
