@@ -1,6 +1,8 @@
 package com.example.liora.imageserviceapp;
 
+import android.app.Notification;
 import android.app.NotificationManager;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
@@ -15,48 +17,48 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.util.Observable;
+import java.util.Observer;
 
-public class ConnectionChannel {
-    private Socket socket;
+public class ConnectionChannel extends Observable {
+    //private Socket socket;
 
-    public ConnectionChannel() {
-    }
+    public ConnectionChannel() {}
 
-    public void connect() {
+    public void connect(File[] images) {
+        if (images == null) return;
         try {
-            this.socket = new Socket("10.0.2.2", 12345);
-            new Thread(()->sendImages()).run();
-           // System.out.println("Connected to Server:\n");
+            InetAddress serverAddr = InetAddress.getByName("10.0.0.2");
+            Socket socket = new Socket(serverAddr, 12345);
+            try {
+                System.out.println("Connected to Server:\n");
+                final OutputStream os = socket.getOutputStream();
+                for (File image : images) {
+                    FileInputStream fis = new FileInputStream(image);
+                    Bitmap bm = BitmapFactory.decodeStream(fis);
+                    byte[] imageName = image.getName().getBytes();
+                    os.write(ByteBuffer.allocate(4).putInt(imageName.length).array());
+                    os.write(imageName);
+                    byte[] imgByte = getBytesFromBitmap(bm);
+                    os.write(ByteBuffer.allocate(4).putInt(imgByte.length).array());
+                    os.write(imgByte);
+                    os.flush();
+                    notifyObservers();
+                }
+            } catch (Exception e) { Log.getStackTraceString(e); }
+            finally { socket.close(); }
         } catch (Exception e) { Log.getStackTraceString(e); }
-    }
-
-    private void sendImages() {
 
     }
 
-    public void GetPhotos(){
-        File dcim = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-        if (dcim == null) return;
-        File[] pics = dcim.listFiles();
-        int count = 0;
-        if (pics != null) {
-            for (File pic : pics){ connectTCP(pic); }
-        }
+    private byte[] getBytesFromBitmap(Bitmap bitmap) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 70, stream);
+        return stream.toByteArray();
     }
 
-    public void showProgressBar(){
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        NotificationCompat.Builder builder =
-                new NotificationCompat.Builder(this, "default");
-        builder.setContentTitle("Picture Tranfer").setContentText("Transfer in progress").
-                setPriority(NotificationCompat.PRIORITY_LOW);
-        builder.setContentText("Half way through").setProgress(100, 50, false);
-        notificationManager.notify(1, builder.build());
-        builder.setContentText("Download complete").setProgress(0, 0, false);
-        notificationManager.notify(1, builder.build());
-    }
-
-    public void connectTCP(File pic) {
+   /** public void connectTCP(File pic) {
         try {
             InetAddress servAddr = InetAddress.getByName("10.0.0.2");
             Socket socket = new Socket(servAddr, 12345);
@@ -70,9 +72,9 @@ public class ConnectionChannel {
             } catch (IOException e) { Log.e("TCP", "S: Error", e); }
         } catch (Exception e) { Log.e("TCP", "C: Error", e); }
 
-    }
+    }*/
 
-    private void sendImage(File pic) {
+    /**private void sendImage(File pic) {
         try {
             OutputStream output = socket.getOutputStream();
             FileInputStream fis = new FileInputStream(pic);
@@ -81,11 +83,5 @@ public class ConnectionChannel {
             output.write(imgbyte);
             output.flush();
         } catch (IOException e) { Log.e("TCP", "S: Error", e); }
-    }
-
-    private byte[] getBytesFromBitmap(Bitmap bitmap) {
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 70, stream);
-        return stream.toByteArray();
-    }
+    }*/
 }
