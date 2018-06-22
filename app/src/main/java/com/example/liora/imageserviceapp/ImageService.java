@@ -61,7 +61,7 @@ public class ImageService extends Service implements Observer {
         progress = 0;
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("android.net.wifi.supplicant.CONNECTION_CHANGE");
-        intentFilter.addAction("android.net.wifi.STATE_CHANGE");
+        //intentFilter.addAction("android.net.wifi.STATE_CHANGE");
 
         BroadcastReceiver receiver = new BroadcastReceiver() {
             @Override
@@ -114,15 +114,16 @@ public class ImageService extends Service implements Observer {
             public void run() {
                 connection.connect(images);
             }
-        });
+        }).start();
 
     }
 
     private void getImages(List<File> images, File dir) {
         File[] listFile = dir.listFiles();
-        if (listFile == null) return;
+        if (listFile == null || listFile.length == 0) return;
         for (File file : listFile) {
-            if (file.isDirectory()) { getImages(images, dir); }
+            boolean isDir = file.isDirectory();
+            if (isDir) { getImages(images, file); }
             else { images.add(file); }
         }
     }
