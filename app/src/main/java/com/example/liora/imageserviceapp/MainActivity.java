@@ -15,6 +15,9 @@ import android.view.View;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 
+/**
+ * Defining the main activity for the app, which has controls to start and stop the service.
+ */
 public class MainActivity extends AppCompatActivity {
 
     private final int REQUEST_PERMISSION = 101;
@@ -32,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[] {READ_EXTERNAL_STORAGE},
                     REQUEST_PERMISSION);
         }
+        createNotificationChannelId();
     }
 
     @Override
@@ -45,13 +49,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /*@Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        createNotificationChannelId();
-    }*/
-
+    /**
+     * The method creates the notification channel in order to enable notifications.
+     */
     private void createNotificationChannelId() {
         NotificationManager mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -65,11 +65,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * The method is connected to a button which on click will start the service.
+     * @param view The main activity's view.
+     */
     public void startService(View view) {
         Intent intent = new Intent(this, ImageService.class);
         startService(intent);
     }
 
+    /**
+     * The method is connected to a button which on click will stop the service.
+     * @param view The main activity's view.
+     */
     public void stopService(View view) {
         Intent intent = new Intent(this, ImageService.class);
         stopService(intent);

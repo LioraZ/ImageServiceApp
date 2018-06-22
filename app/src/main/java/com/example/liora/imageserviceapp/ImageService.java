@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
+/**
+ * Defining an ImageServicec to transfer the phone images to computer when wifi event occurs.
+ */
 public class ImageService extends Service implements Observer {
     //private BroadcastReceiver receiver;
     private NotificationManager notificationManager;
@@ -45,6 +48,7 @@ public class ImageService extends Service implements Observer {
         super.onCreate();
     }
 
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         startWifiBroadcaster();
         Toast.makeText(this, "The service is starting...", Toast.LENGTH_SHORT).show();
@@ -56,10 +60,14 @@ public class ImageService extends Service implements Observer {
         Toast.makeText(this, "The service is ending...", Toast.LENGTH_SHORT).show();
     }
 
+    /**
+     * The method initializes the notification manager, and creates a broadcast receiver to listen
+     * to wifi events, and send the images to the connection.
+     */
     public void startWifiBroadcaster() {
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         //notificationManager = NotificationManagerCompat.from(this);
-        builder = new NotificationCompat.Builder(this, "MY_CHANNEL_ID_1");
+        builder = new NotificationCompat.Builder(this, "default");
         progress = 0;
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("android.net.wifi.supplicant.CONNECTION_CHANGE");
@@ -83,13 +91,20 @@ public class ImageService extends Service implements Observer {
         this.registerReceiver(receiver, intentFilter);
     }
 
+    /**
+     * The method is invoked every time an image is transferred, to update the notification
+     * progress bar.
+     * @param o The observable.
+     * @param arg The args- we won't be receiving any.
+     */
     @Override
     public void update(Observable o, Object arg)
     {
+        progress++;
         String contextMsg;
         if (progress == numImages) contextMsg = "Image transfer completed";
         else contextMsg = progress + " images out of "+ numImages + " images transferred";
-        progress++;
+
         builder.setProgress(numImages, progress, false).setContentText(contextMsg);
 
         //Send the notification:
@@ -97,6 +112,9 @@ public class ImageService extends Service implements Observer {
         notificationManager.notify(notificationID, notification);
     }
 
+    /**
+     * The method geets all images from phone, and sends them to the connection.
+     */
     public void startTransfer() {
         //Update notification information:
         ArrayList<File> imagesList = new ArrayList<>();
@@ -124,6 +142,11 @@ public class ImageService extends Service implements Observer {
 
     }
 
+    /**
+     * The method recursively gets all images on phone.
+     * @param images The list of images.
+     * @param dir The current directory which in it images are searched for.
+     */
     private void getImages(List<File> images, File dir) {
         File[] listFile = dir.listFiles();
         if (listFile == null || listFile.length == 0) return;

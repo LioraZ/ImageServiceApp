@@ -21,12 +21,18 @@ import java.nio.ByteBuffer;
 import java.util.Observable;
 import java.util.Observer;
 
+/**
+ * Defining a connection class to transfer images to computer via tcp connection.
+ */
 public class ConnectionChannel extends Observable {
     //private Socket socket;
 
-    public ConnectionChannel() {
-    }
+    public ConnectionChannel() { }
 
+    /**
+     * The method connects to socket, and sends the images to computer.
+     * @param images The list of images.
+     */
     public void connect(File[] images) {
         if (images == null) return;
         try {
@@ -58,13 +64,20 @@ public class ConnectionChannel extends Observable {
         }
     }
 
+    /**
+     * The method notifies all observers to connection that an image was transferred.
+     */
     @Override
     public void notifyObservers() {
         setChanged();
         super.notifyObservers();
     }
 
-
+    /**
+     * The method converts an image to a bytes array.
+     * @param bitmap The image.
+     * @return The bytes array.
+     */
     private byte[] getBytesFromBitmap(Bitmap bitmap) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 70, stream);
