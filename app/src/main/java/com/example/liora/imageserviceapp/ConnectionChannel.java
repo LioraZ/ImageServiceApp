@@ -24,13 +24,14 @@ import java.util.Observer;
 public class ConnectionChannel extends Observable {
     //private Socket socket;
 
-    public ConnectionChannel() {}
+    public ConnectionChannel() {
+    }
 
     public void connect(File[] images) {
         if (images == null) return;
         try {
-            InetAddress serverAddr = InetAddress.getByName("10.0.0.2");
-            Socket socket = new Socket(serverAddr, 12345);
+            InetAddress serverAddr = InetAddress.getByName("10.0.2.2");
+            Socket socket = new Socket(serverAddr, 7234);
             try {
                 System.out.println("Connected to Server:\n");
                 final OutputStream os = socket.getOutputStream();
@@ -46,42 +47,27 @@ public class ConnectionChannel extends Observable {
                     os.flush();
                     notifyObservers();
                 }
-            } catch (Exception e) { Log.getStackTraceString(e); }
-            finally { socket.close(); }
-        } catch (Exception e) { Log.getStackTraceString(e); }
-
+            } catch (Exception e) {
+                Log.getStackTraceString(e);
+            } finally {
+                System.out.println("finished sending photo batch\n");
+                socket.close();
+            }
+        } catch (Exception e) {
+            Log.getStackTraceString(e);
+        }
     }
+
+    @Override
+    public void notifyObservers() {
+        setChanged();
+        super.notifyObservers();
+    }
+
 
     private byte[] getBytesFromBitmap(Bitmap bitmap) {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 70, stream);
         return stream.toByteArray();
     }
-
-   /** public void connectTCP(File pic) {
-        try {
-            InetAddress servAddr = InetAddress.getByName("10.0.0.2");
-            Socket socket = new Socket(servAddr, 12345);
-            try {
-                OutputStream output = socket.getOutputStream();
-                FileInputStream fis = new FileInputStream(pic);
-                Bitmap bm = BitmapFactory.decodeStream(fis);
-                byte[] imgbyte = getBytesFromBitmap(bm);
-                output.write(imgbyte);
-                output.flush();
-            } catch (IOException e) { Log.e("TCP", "S: Error", e); }
-        } catch (Exception e) { Log.e("TCP", "C: Error", e); }
-
-    }*/
-
-    /**private void sendImage(File pic) {
-        try {
-            OutputStream output = socket.getOutputStream();
-            FileInputStream fis = new FileInputStream(pic);
-            Bitmap bm = BitmapFactory.decodeStream(fis);
-            byte[] imgbyte = getBytesFromBitmap(bm);
-            output.write(imgbyte);
-            output.flush();
-        } catch (IOException e) { Log.e("TCP", "S: Error", e); }
-    }*/
 }

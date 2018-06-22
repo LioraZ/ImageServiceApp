@@ -28,9 +28,10 @@ import java.util.Observer;
 
 public class ImageService extends Service implements Observer {
     //private BroadcastReceiver receiver;
-    private NotificationManagerCompat notificationManager;
+    private NotificationManager notificationManager;
     private NotificationCompat.Builder builder;
-    private final int notificationID = 1;
+    private final int notificationID = 100;
+    private int numImages;
     private int progress;
 
     public ImageService() { }
@@ -56,12 +57,13 @@ public class ImageService extends Service implements Observer {
     }
 
     public void startWifiBroadcaster() {
-        notificationManager = NotificationManagerCompat.from(this);
-        builder = new NotificationCompat.Builder(getApplicationContext(), "default");
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        //notificationManager = NotificationManagerCompat.from(this);
+        builder = new NotificationCompat.Builder(this, "MY_CHANNEL_ID_1");
         progress = 0;
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("android.net.wifi.supplicant.CONNECTION_CHANGE");
-        //intentFilter.addAction("android.net.wifi.STATE_CHANGE");
+        intentFilter.addAction("android.net.wifi.STATE_CHANGE");
 
         BroadcastReceiver receiver = new BroadcastReceiver() {
             @Override
@@ -84,13 +86,15 @@ public class ImageService extends Service implements Observer {
     @Override
     public void update(Observable o, Object arg)
     {
+        String contextMsg;
+        if (progress == numImages) contextMsg = "Image transfer completed";
+        else contextMsg = progress + " images out of "+ numImages + " images transferred";
         progress++;
-        builder.setProgress(100, progress, false);
+        builder.setProgress(numImages, progress, false).setContentText(contextMsg);
 
         //Send the notification:
         Notification notification = builder.build();
         notificationManager.notify(notificationID, notification);
-        System.out.println("Message board changed: " + arg);
     }
 
     public void startTransfer() {
@@ -100,10 +104,12 @@ public class ImageService extends Service implements Observer {
         File[] tempImages = new File[imagesList.size()];
         tempImages = imagesList.toArray(tempImages);
         final File[] images = tempImages;
+        numImages = images.length;
                 //Integer notificationID = 1;
-        builder.setOngoing(true).setContentTitle("Notification Content Title")
-                .setContentText("Notification Content Text")
-                .setProgress(images.length, progress, false);
+        builder.setOngoing(true).setContentTitle("Image Transfer")
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentText("Image transfer starting...")
+                .setProgress(numImages, progress, false);
         //Send the notification:
         Notification notification = builder.build();
         notificationManager.notify(notificationID, notification);
